@@ -30,7 +30,7 @@ TO DO:
 
 
 '''CONSTANTS'''
-DATA_DIR = "/home/pat/CrimeData2013/Dataset/"
+DATA_DIR = "./Dataset/"
 CSV_DIR = ''
 FILES = []
 FILE_EXTENSIONS = ['xls', 'xlsx']
@@ -52,7 +52,7 @@ def makeDirectory():
 	if not os.path.exists(DATA_DIR + 'csv-files'):
 		os.makedirs(DATA_DIR + 'csv-files')
 		print "Directory made at %s" %(DATA_DIR + 'csv-files')
-		return DATA_DIR + 'csv-files' 
+		return DATA_DIR + 'csv-files'
 	else:
 		print "Directory already exists at %s!" %(DATA_DIR + 'csv-files')
 		return DATA_DIR + 'csv-files'
@@ -65,6 +65,8 @@ def writeLineToFile(fileToWrite, lineToWrite):
 			fileToWrite.write(value + ',')
 		elif value == '':
 			fileToWrite.write('NULL,')
+	fileToWrite.seek(-1, os.SEEK_END)
+	fileToWrite.truncate()
 	fileToWrite.write('\n')
 
 def main():
@@ -73,13 +75,13 @@ def main():
 	#Grabs files in DATA_DIR, makes directory for csv files
 	FILES = grabFiles()
 	CSV_DIR = makeDirectory()
-	
+
 	for file in FILES:
 		extension = file.split('.')[1]
 		filename =  file.split('.')[0]
-		
+
 		if extension in FILE_EXTENSIONS:
-			
+
 			print "Writing " + filename + '.' + extension + '...'
 			wb = xlrd.open_workbook(DATA_DIR + file)
 			sheet = wb.sheet_by_index(0)
@@ -93,7 +95,7 @@ def main():
 				valrow = sheet.row_values(rownum)
 				vals = []
 				#Load with strings of values
-				for val in valrow: 
+				for val in valrow:
 					try:
 						vals.append(str(val))
 					except:
@@ -104,7 +106,7 @@ def main():
 						writeLineToFile(csv_file, vals)
 				else:
 						writeLineToFile(csv_file, vals)
-						
+
 
 			csv_file.close()
 
