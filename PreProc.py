@@ -65,6 +65,7 @@ def writeLineToFile(fileToWrite, lineToWrite):
 			fileToWrite.write(value + ',')
 		elif value == '':
 			fileToWrite.write('NULL,')
+	# Added the following two lines to remove the comma at the end -DJC
 	fileToWrite.seek(-1, os.SEEK_END)
 	fileToWrite.truncate()
 	fileToWrite.write('\n')
