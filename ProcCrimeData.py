@@ -1,8 +1,6 @@
 '''
-
 This program processes the 2013 crime data in the CSV
 files and writes the data to pandas DataFrame objects
-
 '''
 
 from os import walk
@@ -42,9 +40,9 @@ def grabData(includeHateCrimeData):
 	print "Grabbed %d files" %len(FILES) +"\n"
 	return FILES
 
-
 def getData(element):
 	return 'NULL' if element == 'NULL' else float(element)
+
 
 '''
  This function checks for information in the crime stored
@@ -124,7 +122,6 @@ def writeToDict(data):
 '''
 Use tis class in other programs,
 its constructor processes the CSV files
-
 '''
 class CrimeData:
 	'''

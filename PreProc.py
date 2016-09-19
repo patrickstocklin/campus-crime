@@ -30,15 +30,16 @@ TO DO:
 
 
 '''CONSTANTS'''
-DATA_DIR = "./Dataset/"
+XLS_DIR = './Dataset/xls-files/'
+DATA_DIR = './Dataset/'
 CSV_DIR = ''
 FILES = []
 FILE_EXTENSIONS = ['xls', 'xlsx']
 '''END CONSTANTS'''
 
 def grabFiles():
-	print "Grabbing files from directory %s" %DATA_DIR
-	for (dirpath, dirnames, filenames) in walk(DATA_DIR):
+	print "Grabbing files from directory %s" %XLS_DIR
+	for (dirpath, dirnames, filenames) in walk(XLS_DIR):
 		for file in filenames:
 			extension = file.split('.')[1]
 			if extension == 'xls' or extension == 'xlsx':
@@ -84,7 +85,7 @@ def main():
 		if extension in FILE_EXTENSIONS:
 
 			print "Writing " + filename + '.' + extension + '...'
-			wb = xlrd.open_workbook(DATA_DIR + file)
+			wb = xlrd.open_workbook(XLS_DIR + file)
 			sheet = wb.sheet_by_index(0)
 			csv_file = open(CSV_DIR + '/' + file.split('.')[0] + '.csv', 'wb')
 			wr = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
