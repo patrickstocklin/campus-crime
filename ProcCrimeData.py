@@ -62,7 +62,7 @@ class CrimeData:
 	def __init__(self, options={'includeHateCrimeData': True}):
 		START_TIME = time.time()
 
-		files = grabData(options['includeHateCrimeData'])
+		self.files = grabData(options['includeHateCrimeData'])
 
 		END_TIME = time.time()
 		print "Crime data collected in "+ str(round(END_TIME - START_TIME, 2)) +" seconds."
