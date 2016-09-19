@@ -40,30 +40,47 @@ def grabData(includeHateCrimeData):
 	print "Grabbed %d files" %len(FILES) +"\n"
 	return FILES
 
+# Get data from line element, handles NULL case
 def getData(element):
-	return 'NULL' if element == 'NULL' else float(element)
+	return 0. if element == 'NULL' else float(element)
 
 
 '''
  This function checks for information in the crime stored
  in numerical values
-
+ 
+ @param type:      Which type of data we are looking at (Arrests, Crime, Discipline, Hate)
  @param line:      Array of terms in the line (stored as strings)
- @param indicies:  the indicies of the line we are checking
  @param output:    the output data in writeToDict()
  @param univ_name: the name of the university the data is about
  @param total:     the section where the total number of crimes is tracked
  @param sections:  An array of strings that indicate which
                    sections of the data to update. Traversed
                    in parallel with indicies
+ @param years:     Years we are examining
 '''
-def checkLine(line, indices, output, univ_name, total, sections):
+def writeLineToData(type, line, output, univ_name, total, sections, years):
+	if output[univ_name]['City'] == None:
+		output[univ_name]['City'] = line[ len(line) - 3 - (len(sections) * len(years)) - 9 ]
+	if output[univ_name]['State'] == None:
+		output[univ_name]['State'] = line[ len(line) - 3 - (len(sections) * len(years)) - 8 ]
+
+	indices = [ i+len(line)-(3+len(years)*len(sections)) for i in range(len(years)*len(sections)) ]
 	for i in range(len(indices)):
-		if line[indices[i]] == 'NULL':
-			output[univ_name][sections[i]] += 0.
+		if sections[i/len(years)]+' '+years[i/len(sections)] not in output[univ_name]:
+			output[univ_name][sections[i/len(years)]+' '+years[i/len(sections)]] = getData( line[indices[i]] )
 		else:
-			output[univ_name][sections[i]] += float(line[indices[i]])
-			output[univ_name][total] += float(line[indices[i]])
+			output[univ_name][sections[i/len(years)]+' '+years[i/len(sections)]] += getData( line[indices[i]] )
+
+
+	# Adding the info to the output dictionary
+	# sections += sections + sections
+	# for i in range(len(indices)):
+	# 	if line[indices[i]] == 'NULL':
+	# 		output[univ_name][sections[i]] += 0.
+	# 	else:
+	# 		output[univ_name][sections[i]] += float(line[indices[i]])
+	# 		output[univ_name][total] += float(line[indices[i]])
 
 
 # Process the data into a dictionary organized by University
@@ -71,45 +88,41 @@ def writeToDict(data):
 	output = {}
 	for file in data:
 		filename = ''
+		years = []
 		for line in file:
 			if len(line) == 1 or line[0] == "UNITID_P":
 				if len(line) == 1: filename = line[0]
 				print 'Parsing '+ filename
+				# Keep track of the years this data covers
+				years = filename.split('.')[0]
+				years = [years[i] for i in range(len(years)-6, len(years))]
+				years = [years[0]+years[1], years[2]+years[3], years[4]+years[5]]
 				continue
+			# Creating dictionary key with the university name
 			univ_name = line[1]
 			if univ_name not in output:
-				output[univ_name] = { 'City':               line[ len(line)-20 ],
-				                      'State:':             line[ len(line)-19 ],
-				                      'Pub or Priv':        line[ len(line)-17 ],
-				                      'Men':                getData( line[ len(line)-15 ] ),
-				                      'Women':              getData( line[ len(line)-14 ] ),
-				                      'Total Students':     getData( line[ len(line)-13 ] ),
-				             		  'Total Arrests':      0.,
-				             		  'Arrests w Weapon':   0.,
-				             		  'Arrests w Drugs':    0.,
-				             		  'Arrests w Liquor':   0.,
-				             		  'Total Crimes':       0.,
-				             		  'Murders':            0.,
-				             		  'Negligible Mans.':   0.,
-				             		  'Forced Entries':     0.,
-				             		  'Nonforced Entries':  0.,  
-				             		  'Robberies':          0.,
-				             		  'Aggr. Assaults':     0.,
-				             		  'Burglaries':         0.,
-				             		  'Vehicular Mans.':    0., 
-				             		  'Arsons':             0.  }
- 
+				output[univ_name] = { 'City':              None,
+				                      'State':             None,
+				                      'Pub or Priv':       line[ len(line)-17 ] }
+				                      # 'Men':                getData( line[ len(line)-15 ] ),
+				                      # 'Women':              getData( line[ len(line)-14 ] ),
+				                      # 'Total Students':     getData( line[ len(line)-13 ] ),
+				             		  # 'Total Arrests':      0. }
+				             		  # 'Total Crimes':       0.,
+				             		  # 'Murders':            0.,
+				             		  # 'Negligible Mans.':   0.,
+				             		  # 'Forced Entries':     0.,
+				             		  # 'Nonforced Entries':  0.,  
+				             		  # 'Robberies':          0.,
+				             		  # 'Aggr. Assaults':     0.,
+				             		  # 'Burglaries':         0.,
+				             		  # 'Vehicular Mans.':    0., 
+				             		  # 'Arsons':             0.  }
 			if 'arrest' in filename:
-				indicies = [len(line)-i for i in range(4, 13)]
-				sections = ['Arrests w Liquor', 'Arrests w Drugs', 'Arrests w Weapon']
-				sections += sections + sections
-				checkLine(line, indicies, output, univ_name, 'Total Arrests', sections)
+				sections = ['Arrests w Weapon', 'Arrests w Drugs', 'Arrest w Liquor']
+				writeLineToData('Arrests', line, output, univ_name, 'Total Arrests', sections, years)
 			if 'crime' in filename:
-				indicies = [len(line)-i for i in range(4, 31)]
-				sections = ['Arsons', 'Vehicular Mans.', 'Burglaries', 'Aggr. Assaults', 'Robberies']
-				sections += ['Nonforced Entries', 'Forced Entries', 'Negligible Mans.', 'Murders']
-				sections += sections + sections
-				checkLine(line, indicies, output, univ_name, 'Total Crimes', sections)
+				pass
 			if 'discipline' in filename:
 				pass
 			if 'hate' in filename:
@@ -135,7 +148,7 @@ class CrimeData:
 
 		data = grabData(options['includeHateCrimeData'])
 		data = writeToDict(data)
-		print data['Georgetown University']
+		print data['Delaware State University']
 
 
 		END_TIME = time.time()
