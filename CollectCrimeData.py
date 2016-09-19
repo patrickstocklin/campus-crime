@@ -258,5 +258,3 @@ To implement: Instantiate CrimeData class, which will have public values
               of the information. 
 
 '''
-
-c = CrimeData()
