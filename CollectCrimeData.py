@@ -252,4 +252,8 @@ To implement: Instantiate CrimeData class, which will have public values
               dictionary which is a Python dictionary which contains all
               of the information. 
 
+<<<<<<< HEAD
 '''
+=======
+'''
+>>>>>>> 195f4c51f238352cbd7fbd57bdf284d542eec084
