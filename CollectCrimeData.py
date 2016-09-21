@@ -60,7 +60,8 @@ def getData(element):
 '''
 def writeLineToData(line, output, univ_name, total, sections, years):
 	if output[univ_name]['City'] == None:
-		output[univ_name]['City'] = line[ len(line) - 3 - (len(sections) * len(years)) - 9 ]
+		string = line[ len(line) - 3 - (len(sections) * len(years)) - 9 ]
+		output[univ_name]['City'] = string.upper()
 	if output[univ_name]['State'] == None:
 		output[univ_name]['State'] = line[ len(line) - 3 - (len(sections) * len(years)) - 8 ]
 	if output[univ_name]['Pub or Priv'] == None:
@@ -69,19 +70,23 @@ def writeLineToData(line, output, univ_name, total, sections, years):
 	indices = [ i+len(line)-(3+len(years)*len(sections)) for i in range(len(years)*len(sections)) ]
 	if total not in output[univ_name]:
 		output[univ_name][total] = 0.
-	for i in range(len(indices)):  # This is a mess lol
+	for i in range(len(indices)):
+		section = sections[i / len(years)]
+		year = years[i / len(sections)]
 		if sections[i/len(years)]+years[i/len(sections)] not in output[univ_name]:
-			output[univ_name][sections[i/len(years)]+years[i/len(sections)]] = getData( line[indices[i]] )
-			output[univ_name][total+years[i/len(sections)]] = getData( line[indices[i]] )
-			output[univ_name][total] += getData( line[indices[i]] )
+			output[univ_name][ section+year ] = getData( line[indices[i]] )
+			output[univ_name][ total+' '+year ] = getData( line[indices[i]] )
+			output[univ_name][ total ] += getData( line[indices[i]] )
 		else:
-			output[univ_name][sections[i/len(years)]+years[i/len(sections)]] += getData( line[indices[i]] )
-			output[univ_name][total+years[i/len(sections)]] += getData( line[indices[i]] )
-			output[univ_name][total] += getData( line[indices[i]] )
+			output[univ_name][ section+year ] += getData( line[indices[i]] )
+			output[univ_name][ total+' '+year ] += getData( line[indices[i]] )
+			output[univ_name][ total ] += getData( line[indices[i]] )
+	return output
 
 
 # Process the data into a dictionary organized by University
 def writeToDict(data):
+	print 'Parsing data and writing dictionary.\n'
 	output = {}
 	for file in data:
 		filename = ''
@@ -98,25 +103,27 @@ def writeToDict(data):
 				continue
 			# Creating dictionary key with the university name
 			univ_name = line[1]
-			if univ_name not in output:
+			if univ_name == "niversity of Puerto Rico-Medical Sciences":
+				univ_name = "University of Puerto Rico-Medical Sciences"
+			if univ_name not in output and 'fire' not in filename:
 				output[univ_name] = { 'City':              None,
 				                      'State':             None,
 				                      'Pub or Priv':       None  }
 			if 'arrest' in filename:
 				sections = ['Arrests w Weapon ', 'Arrests w Drugs ', 'Arrests w Liquor ']
-				writeLineToData(line, output, univ_name, 'Total Arrests', sections, years)
+				output = writeLineToData(line, output, univ_name, 'Total Arrests', sections, years)
 			elif 'crime' in filename:
 				sections = ['Murders ', 'Negligible Mans. ', 'Forcible Entries ', 'Nonforcible entries ']
 				sections += ['Robberies', 'Aggr. Assaults ', 'Burglaries ', 'Vehicular Mans. ', 'Arsons ']
-				writeLineToData(line, output, univ_name, 'Total Crimes', sections, years)
+				output = writeLineToData(line, output, univ_name, 'Total Crimes', sections, years)
 			elif 'discipline' in filename:
 				sections = ['Displ. Actions w Weapon ', 'Displ. Actions w Drugs ', 'Displ. Actions w Liquor ']
-				writeLineToData(line, output, univ_name, 'Total Displ. Actions', sections, years)
+				output = writeLineToData(line, output, univ_name, 'Total Displ. Actions', sections, years)
 			elif 'hate' in filename:
 				sections = ['HC Murders ', 'HC Negligible Mans. ', 'HC Forcible Entries ']
 				sections += ['HC Nonforcible Entries ', 'HC Robberies ', 'HC Aggr. Assault ']
 				sections += ['HC Burglaries ', 'HC Vehicular Mans. ', 'HC Arsons ', 'HC Body Injuries ']
-				writeLineToData(line, output, univ_name, 'Total Hate Crimes', sections, years)
+				output = writeLineToData(line, output, univ_name, 'Total Hate Crimes', sections, years)
 	print "Finished parsing files.\n"
 	badKeys = []
 	for key in output:
@@ -129,6 +136,7 @@ def writeToDict(data):
 
 # Write data to a pandas DataFrame
 def writeToDataFrame(data):
+	print 'Writing data to pandas DataFrame.\n'
 	# List of all universities
 	universities = []
 	for key in data:
@@ -140,7 +148,7 @@ def writeToDataFrame(data):
 	columns = ['City', 'State', 'Pub or Priv']
 	years = ['05', '06', '07', '08', '09', '10', '11', '12', '13']
 
-	arrSections = ['Arrests w Weapon ', 'Arrests w Drugs ', 'Arrests w Liquor ']
+	arrSections = ['Arrests w Weapon ', 'Arrests w Drugs ', 'Arrests w Liquor ', 'Total Arrests ']
 	for section in arrSections:
 		for year in years:
 			columns += [section+year]
@@ -148,12 +156,14 @@ def writeToDataFrame(data):
 
 	crimeSections = ['Murders ', 'Negligible Mans. ', 'Forcible Entries ', 'Nonforcible Entries ']
 	crimeSections += ['Robberies ', 'Aggr. Assaults ', 'Burglaries ', 'Vehicular Mans. ', 'Arsons ']
+	crimeSections += ['Total Crimes ']
 	for section in crimeSections:
 		for year in years:
 			columns += [section+year]
 	columns.append('Total Crimes')
 
-	dispSections = ['Displ. Actions w Weapon ', 'Displ. Actions w Drugs ', 'Displ. Actions w Liquor ']
+	dispSections = ['Displ. Actions w Weapon ', 'Displ. Actions w Drugs ']
+	dispSections = ['Displ. Actions w Liquor ', 'Total Displ. Actions ']
 	for section in dispSections:
 		for year in years:
 			columns += [section+year]
@@ -171,52 +181,37 @@ def writeToDataFrame(data):
 	for univ in universities:
 		univData = [data[univ]['City'], data[univ]['State'], data[univ]['Pub or Priv']]
 
-		for secion in arrSections:
+		for section in arrSections:
 			for year in years:
-				if (section+year) in data[univ]:
-					univData.append(data[univ][section+year])
-				else:
+				try:
+					univData.append(data[univ][section + year])
+				except:
 					univData.append('NULL')
-		else: pass
-		if 'Total Arrests' in data[univ]:
-			univData.append(data[univ]['Total Arrests'])
-		else:
-			univData.append('NULL')
+		univData.append(data[univ]['Total Arrests'])
 
-		for secion in crimeSections:
+		for section in crimeSections:
 			for year in years:
-				if (section+year) in data[univ]:
-					univData.append(data[univ][section+year])
-				else:
+				try:
+					univData.append(data[univ][section + year])
+				except:
 					univData.append('NULL')
-		else: pass
-		if 'Total Crimes' in data[univ]:
-			univData.append(data[univ]['Total Crimes'])
-		else:
-			univData.append('NULL')
+		univData.append(data[univ]['Total Crimes'])
 
-		for secion in dispSections:
+		for section in dispSections:
 			for year in years:
-				if (section+year) in data[univ]:
-					univData.append(data[univ][section+year])
-				else:
+				try:
+					univData.append(data[univ][section + year])
+				except:
 					univData.append('NULL')
-		else: pass
-		if 'Total Displ. Actions' in data[univ]:
-			univData.append(data[univ]['Total Displ. Actions'])
-		else:
-			univData.append('NULL')
+		univData.append(data[univ]['Total Displ. Actions'])
 
 		for section in hateSections:
 			for year in years:
-				if (section+year) in data[univ]:
-					univData.append(data[univ][section+year])
-				else:
+				try:
+					univData.append(data[univ][section + year])
+				except:
 					univData.append('NULL')
-		if 'Total Hate Crimes' in data[univ]:
-			univData.append(data[univ]['Total Hate Crimes'])
-		else:
-			univData.append('NULL')
+		univData.append(data[univ]['Total Hate Crimes'])
 
 		dataArray.append(univData)
 
@@ -258,5 +253,3 @@ To implement: Instantiate CrimeData class, which will have public values
               of the information. 
 
 '''
-
-c = CrimeData()
