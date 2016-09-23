@@ -11,8 +11,8 @@ TODO:
 '''
 
 '''CONSTANTS'''
-DATA_DIR = './Dataset/'
-CSV_DIR = './Dataset/csv-files/'
+DATA_DIR = '../Dataset/'
+CSV_DIR = '../Dataset/csv-files/'
 FILENAME = ''
 
 NEW_LINE_BREAK = "\n"*1

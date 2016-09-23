@@ -30,8 +30,8 @@ TO DO:
 
 
 '''CONSTANTS'''
-XLS_DIR = './Dataset/xls-files/'
-DATA_DIR = './Dataset/'
+XLS_DIR = '../Dataset/xls-files/'
+DATA_DIR = '../Dataset/'
 CSV_DIR = ''
 FILES = []
 FILE_EXTENSIONS = ['xls', 'xlsx']
