@@ -41,8 +41,16 @@ def grabData(includeHateCrimeData):
 	return FILES
 
 # Get data from line element, handles NULL case
-def getData(element):
-	return 0. if element == 'NULL' else float(element)
+def getData(prev_element, element, add_to_total=False):
+	if prev_element == None and not add_to_total:
+		return -1. if element == 'NULL' else float(element)
+	if prev_element == None and add_to_total:
+		return 0. if element == 'NULL' else float(element)
+	if prev_element == -1.: return -1.
+	if element == 'NULL' and not add_to_total: return -1.
+	if element == 'NULL' and add_to_total: return prev_element
+	else: return prev_element + float(element)
+
 
 
 '''
@@ -59,6 +67,7 @@ def getData(element):
  @param years:     years we are examining
 '''
 def writeLineToData(line, output, univ_name, total, sections, years):
+
 	if output[univ_name]['City'] == None:
 		string = line[ len(line) - 3 - (len(sections) * len(years)) - 9 ]
 		output[univ_name]['City'] = string.upper()
@@ -67,20 +76,21 @@ def writeLineToData(line, output, univ_name, total, sections, years):
 	if output[univ_name]['Pub or Priv'] == None:
 		output[univ_name]['Pub or Priv'] = line[ len(line) - 3 - (len(sections) * len(years)) - 5 ]
 
-	indices = [ i+len(line)-(3+len(years)*len(sections)) for i in range(len(years)*len(sections)) ]
+	indices = [ i+len(line)-(3+len(years)*len(sections)) for i in range(3*len(sections)) ]
+
 	if total not in output[univ_name]:
 		output[univ_name][total] = 0.
+
 	for i in range(len(indices)):
-		section = sections[i / len(years)]
+		section = sections[i % len(years)]
 		year = years[i / len(sections)]
-		if sections[i/len(years)]+years[i/len(sections)] not in output[univ_name]:
-			output[univ_name][ section+year ] = getData( line[indices[i]] )
-			output[univ_name][ total+' '+year ] = getData( line[indices[i]] )
-			output[univ_name][ total ] += getData( line[indices[i]] )
+		if not section+year in output[univ_name]:
+			output[univ_name][ section+year ] = getData( None, line[indices[i]] )
+			output[univ_name][ total ] = getData( None, line[indices[i]], True )
 		else:
-			output[univ_name][ section+year ] += getData( line[indices[i]] )
-			output[univ_name][ total+' '+year ] += getData( line[indices[i]] )
-			output[univ_name][ total ] += getData( line[indices[i]] )
+			output[univ_name][section+year] = getData( output[univ_name][section+year], line[indices[i]] )
+			output[univ_name][total] = getData( output[univ_name][total], line[indices[i]], True )
+
 	return output
 
 
@@ -99,16 +109,16 @@ def writeToDict(data):
 				# Keep track of the years this data covers
 				years = filename.split('.')[0]
 				years = [years[i] for i in range(len(years)-6, len(years))]
-				years = [years[0]+years[1], years[2]+years[3], years[4]+years[5]]
+				years = [str(years[0]+years[1]), str(years[2]+years[3]), str(years[4]+years[5])]
 				continue
 			# Creating dictionary key with the university name
 			univ_name = line[1]
 			if univ_name == "niversity of Puerto Rico-Medical Sciences":
 				univ_name = "University of Puerto Rico-Medical Sciences"
 			if univ_name not in output and 'fire' not in filename:
-				output[univ_name] = { 'City':              None,
-				                      'State':             None,
-				                      'Pub or Priv':       None  }
+				output[univ_name] = { 'City':         None,
+				                      'State':        None,
+				                      'Pub or Priv':  None  }
 			if 'arrest' in filename:
 				sections = ['Arrests w Weapon ', 'Arrests w Drugs ', 'Arrests w Liquor ']
 				output = writeLineToData(line, output, univ_name, 'Total Arrests', sections, years)
@@ -121,7 +131,7 @@ def writeToDict(data):
 				output = writeLineToData(line, output, univ_name, 'Total Displ. Actions', sections, years)
 			elif 'hate' in filename:
 				sections = ['HC Murders ', 'HC Negligible Mans. ', 'HC Forcible Entries ']
-				sections += ['HC Nonforcible Entries ', 'HC Robberies ', 'HC Aggr. Assault ']
+				sections += ['HC Nonforcible Entries ', 'HC Robberies ', 'HC Aggr. Assaults ']
 				sections += ['HC Burglaries ', 'HC Vehicular Mans. ', 'HC Arsons ', 'HC Body Injuries ']
 				output = writeLineToData(line, output, univ_name, 'Total Hate Crimes', sections, years)
 	print "Finished parsing files.\n"
@@ -148,7 +158,7 @@ def writeToDataFrame(data):
 	columns = ['City', 'State', 'Pub or Priv']
 	years = ['05', '06', '07', '08', '09', '10', '11', '12', '13']
 
-	arrSections = ['Arrests w Weapon ', 'Arrests w Drugs ', 'Arrests w Liquor ', 'Total Arrests ']
+	arrSections = ['Arrests w Weapon ', 'Arrests w Drugs ', 'Arrests w Liquor ']
 	for section in arrSections:
 		for year in years:
 			columns += [section+year]
@@ -156,21 +166,19 @@ def writeToDataFrame(data):
 
 	crimeSections = ['Murders ', 'Negligible Mans. ', 'Forcible Entries ', 'Nonforcible Entries ']
 	crimeSections += ['Robberies ', 'Aggr. Assaults ', 'Burglaries ', 'Vehicular Mans. ', 'Arsons ']
-	crimeSections += ['Total Crimes ']
 	for section in crimeSections:
 		for year in years:
 			columns += [section+year]
 	columns.append('Total Crimes')
 
-	dispSections = ['Displ. Actions w Weapon ', 'Displ. Actions w Drugs ']
-	dispSections = ['Displ. Actions w Liquor ', 'Total Displ. Actions ']
+	dispSections = ['Displ. Actions w Weapon ', 'Displ. Actions w Drugs ', 'Displ. Actions w Liquor ']
 	for section in dispSections:
 		for year in years:
 			columns += [section+year]
 	columns.append('Total Displ. Actions')
 
 	hateSections = ['HC Murders', 'HC Negligible Mans. ', 'HC Forcible Entries ']
-	hateSections += ['HC Nonforcible Entries ', 'HC Robbieries ', 'HC Aggr. Assaults ']
+	hateSections += ['HC Nonforcible Entries ', 'HC Robberies ', 'HC Aggr. Assaults ']
 	hateSections += ['HC Burglaries ', 'HC Vehicular Mans. ', 'HC Arsons ', 'HC Body Injuries ']
 	for section in hateSections:
 		for year in years:
@@ -184,7 +192,7 @@ def writeToDataFrame(data):
 		for section in arrSections:
 			for year in years:
 				try:
-					univData.append(data[univ][section + year])
+					univData.append(data[univ][(section + year)])
 				except:
 					univData.append('NULL')
 		univData.append(data[univ]['Total Arrests'])
@@ -192,7 +200,7 @@ def writeToDataFrame(data):
 		for section in crimeSections:
 			for year in years:
 				try:
-					univData.append(data[univ][section + year])
+					univData.append(data[univ][(section + year)])
 				except:
 					univData.append('NULL')
 		univData.append(data[univ]['Total Crimes'])
@@ -200,7 +208,7 @@ def writeToDataFrame(data):
 		for section in dispSections:
 			for year in years:
 				try:
-					univData.append(data[univ][section + year])
+					univData.append(data[univ][(section + year)])
 				except:
 					univData.append('NULL')
 		univData.append(data[univ]['Total Displ. Actions'])
@@ -252,8 +260,6 @@ To implement: Instantiate CrimeData class, which will have public values
               dictionary which is a Python dictionary which contains all
               of the information. 
 
-<<<<<<< HEAD
 '''
-=======
-'''
->>>>>>> 195f4c51f238352cbd7fbd57bdf284d542eec084
+
+print CrimeData().dataFrame.loc[['Georgetown University']]
