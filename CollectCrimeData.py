@@ -76,13 +76,13 @@ def writeLineToData(line, output, univ_name, total, sections, years):
 	if output[univ_name]['Pub or Priv'] == None:
 		output[univ_name]['Pub or Priv'] = line[ len(line) - 3 - (len(sections) * len(years)) - 5 ]
 
-	indices = [ i+len(line)-(3+len(years)*len(sections)) for i in range(3*len(sections)) ]
+	indices = [ i+len(line)-(3 + 3*len(sections)) for i in range(3*len(sections)) ]
 
 	if total not in output[univ_name]:
 		output[univ_name][total] = 0.
 
 	for i in range(len(indices)):
-		section = sections[i % len(years)]
+		section = sections[i % len(sections)]
 		year = years[i / len(sections)]
 		if not section+year in output[univ_name]:
 			output[univ_name][ section+year ] = getData( None, line[indices[i]] )
@@ -113,6 +113,7 @@ def writeToDict(data):
 				continue
 			# Creating dictionary key with the university name
 			univ_name = line[1]
+
 			if univ_name == "niversity of Puerto Rico-Medical Sciences":
 				univ_name = "University of Puerto Rico-Medical Sciences"
 			if univ_name not in output and 'fire' not in filename:
@@ -123,8 +124,8 @@ def writeToDict(data):
 				sections = ['Arrests w Weapon ', 'Arrests w Drugs ', 'Arrests w Liquor ']
 				output = writeLineToData(line, output, univ_name, 'Total Arrests', sections, years)
 			elif 'crime' in filename:
-				sections = ['Murders ', 'Negligible Mans. ', 'Forcible Entries ', 'Nonforcible entries ']
-				sections += ['Robberies', 'Aggr. Assaults ', 'Burglaries ', 'Vehicular Mans. ', 'Arsons ']
+				sections = ['Murders ', 'Negligible Mans. ', 'Forcible Entries ', 'Nonforcible Entries ']
+				sections += ['Robberies ', 'Aggr. Assaults ', 'Burglaries ', 'Vehicular Mans. ', 'Arsons ']
 				output = writeLineToData(line, output, univ_name, 'Total Crimes', sections, years)
 			elif 'discipline' in filename:
 				sections = ['Displ. Actions w Weapon ', 'Displ. Actions w Drugs ', 'Displ. Actions w Liquor ']
@@ -177,7 +178,7 @@ def writeToDataFrame(data):
 			columns += [section+year]
 	columns.append('Total Displ. Actions')
 
-	hateSections = ['HC Murders', 'HC Negligible Mans. ', 'HC Forcible Entries ']
+	hateSections = ['HC Murders ', 'HC Negligible Mans. ', 'HC Forcible Entries ']
 	hateSections += ['HC Nonforcible Entries ', 'HC Robberies ', 'HC Aggr. Assaults ']
 	hateSections += ['HC Burglaries ', 'HC Vehicular Mans. ', 'HC Arsons ', 'HC Body Injuries ']
 	for section in hateSections:
@@ -262,4 +263,4 @@ To implement: Instantiate CrimeData class, which will have public values
 
 '''
 
-print CrimeData().dataFrame.loc[['Georgetown University']]
+print CrimeData().dataFrame.loc[['Amherst College']]
