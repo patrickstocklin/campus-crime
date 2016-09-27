@@ -1,4 +1,4 @@
-# campus-crime : A Repository for Analysis Crimes on College Campuses
+# campus-crime : A Repository for Crime-Analysis on College Campuses
 
 Campus Crime Statistics from 2008-2015:
 
