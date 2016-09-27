@@ -1,13 +1,20 @@
-# campus-crime
+# campus-crime : A Repository for Analysis Crimes on College Campuses
 
-Campus Crime statistics from 2013
+Campus Crime Statistics from 2008-2015:
 
-To start the Virtualenv:
+To clone this repo:
+
+```git clone https://github.com/patrickstocklin/campus-crime.git```
+
+To start the Virtualenv and install dependencies:
 
 ```cd campus-crime```
 
 ```source bin/activate```
 
-To install dependencies:
-
 ```pip install -r requirements.txt```
+
+All preprocessed and postprocessed data can be found in the directory ```~/data```. There you can find the original zipped files containing the data dictionaries (Microsoft Word Docs) and .XLS spreadsheets. There are also directories for processed .XLS files in ~/data/ such as csv-files and sliced-csvs.
+
+All scripts can be found in ```~/src```, such as python scripts to convert Excel Spreadsheets into .csv files, or to ingest the data into Pandas DataFrames.
+
