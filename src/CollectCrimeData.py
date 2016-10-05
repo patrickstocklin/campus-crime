@@ -12,7 +12,7 @@ import time
 
 '''CONSTANTS'''
 
-DATA_DIR = "../data/csv-files/"
+DATA_DIR = "../data/crime-data/csv-files/"
 
 '''END CONSTANTS'''
 
