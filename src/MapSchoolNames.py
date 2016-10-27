@@ -4,6 +4,8 @@ import time
 from Levenshtein import *
 
 def main():
+
+
 	schoolSetOne = ['University of Massachusetts at Amherst', 'Georgetown University', 'Georgetown College']
 
 	schoolSetTwo = ['University of Massachusetts - Amherst', 'University of Massachusetts at Lowell', 'Georgetown College']
